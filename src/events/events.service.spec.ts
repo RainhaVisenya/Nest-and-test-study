@@ -1,8 +1,8 @@
-import { NotFoundException } from '@nestjs/common';
 import { getModelToken } from '@nestjs/sequelize';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Repository } from 'sequelize-typescript';
 import { CreateEventsDto } from './dto/create-events.dto';
+import { UpdateEventsDto } from './dto/update-events.dto';
 import { Event } from './entities/events.entity';
 import { EventsController } from './events.controller';
 import { EventsService } from './events.service';
@@ -17,6 +17,11 @@ describe('EventsService', () => {
     new CreateEventsDto({ name: 'rolezim-3', date: '17/04/1998' }),
   ];
 
+  const updateEvent = new UpdateEventsDto({
+    name: 'rolezim',
+    date: '15/02/1998',
+  });
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [EventsController],
@@ -28,8 +33,8 @@ describe('EventsService', () => {
             findAll: jest.fn().mockResolvedValue(eventsList),
             findOne: jest.fn().mockResolvedValue(eventsList[0]),
             create: jest.fn().mockReturnValue(eventsList[0]),
-            update: jest.fn(),
-            destroy: jest.fn(),
+            update: jest.fn().mockReturnValue(updateEvent),
+            destroy: jest.fn().mockReturnValue(undefined),
           },
         },
       ],
@@ -99,6 +104,65 @@ describe('EventsService', () => {
       // Assert
       expect(result).toEqual(eventsList[0]);
       expect(eventsRepository.create).toHaveBeenCalledTimes(1);
+    });
+    it('should throw an exception', () => {
+      const data: CreateEventsDto = {
+        name: 'rolezim',
+        date: '15/02/1998',
+      };
+      // Arrange
+      jest.spyOn(eventsRepository, 'create').mockRejectedValueOnce(new Error());
+
+      // Assert
+      expect(service.create(data)).rejects.toThrowError();
+    });
+  });
+
+  describe('update', () => {
+    it('should update an event successfully', async () => {
+      // Arrange
+      const data: UpdateEventsDto = {
+        name: 'rolezim',
+        date: '15/02/1998',
+      };
+
+      // Act
+      const result = await service.update(1, data);
+
+      // Assert
+      expect(result).toEqual(updateEvent);
+    });
+    it('should throw a not found exception', () => {
+      // Arrange
+      jest.spyOn(eventsRepository, 'update').mockRejectedValueOnce(new Error());
+
+      const data: UpdateEventsDto = {
+        name: 'rolezim',
+        date: '15/02/1998',
+      };
+
+      // Assert
+      expect(service.update(1, data)).rejects.toThrowError();
+    });
+  });
+  describe('delete', () => {
+    it('should delete an event successfully', async () => {
+      // Act
+      const result = await service.remove(1);
+
+      // Assert
+      expect(result).toBeUndefined();
+      expect(eventsRepository.destroy).toHaveBeenCalledTimes(1);
+    });
+
+    it('shoud throw a not found exception', () => {
+      // Arrange
+      jest
+        .spyOn(eventsRepository, 'destroy')
+        .mockRejectedValueOnce(new Error());
+
+      // Assert
+      expect(service.remove(1)).rejects.toThrowError();
     });
   });
 });
