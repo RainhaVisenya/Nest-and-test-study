@@ -146,7 +146,7 @@ describe('EventsController', () => {
   });
 
   describe('remove', () => {
-    it('should remove an event successfully', async () => {
+    it('should remove an event successfullyh', async () => {
       // Act
 
       const result = await controller.remove('1');
