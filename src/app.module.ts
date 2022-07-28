@@ -3,7 +3,6 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TestController } from './test/test.controller';
 import { DatabaseService } from './database/database.service';
-import { TweetsModule } from './tweets/tweets.module';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { join } from 'path';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -23,7 +22,6 @@ import { Event } from './events/entities/events.entity';
       synchronize: true,
       models: [Event],
     }),
-    TweetsModule,
     EventsModule,
   ],
   // na controller é onde se registra as rotas
